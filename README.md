@@ -1,73 +1,74 @@
-# 📈 如何用深度强化学习自动炒股
+# 📈 How to use deep reinforcement learning to automate stock trading
 
-## 💡 初衷
+## 💡  Original intention
 
-最近一段时间，受到新冠疫情的影响，股市接连下跌，作为一棵小白菜兼小韭菜，竟然产生了抄底的大胆想法，拿出仅存的一点私房钱梭哈了一把。
+Recently, due to the impact of the new crown epidemic, the stock market has fallen one after another. As a small cabbage and a small leek, it has a bold idea of ​​bargaining and took out the little remaining private money.
 
-第二天，暴跌，俺加仓
+The next day, it plummeted, I increased the position
 
-第三天，又跌，俺加仓
+On the third day, it fell again and I increased the position
 
-第三天，又跌，俺又加仓...
+On the third day, it fell again, and I increased the position...
+
 
 <img src="img/2020-03-27-10-45-59.png" alt="drawing" width="50%"/>
 
-一番错误操作后，结果惨不忍睹，第一次买股票就被股市一段暴打，受到了媳妇无情的嘲讽。痛定思痛，俺决定换一个思路：**如何用深度强化学习来自动模拟炒股？** 实验验证一下能否获得收益。
+After some wrong operations, the results were horrible. The first time I bought stocks, I was beaten by the stock market for a while, and was mercilessly mocked by my wife. After learning from the pain, I decided to change my mind: **How to use deep reinforcement learning to automatically simulate stock trading?** Experiment to verify whether you can get revenue.
 
-## 📖 监督学习与强化学习的区别
+## 📖 The difference between supervised learning and reinforcement learning
 
-监督学习（如 LSTM）可以根据各种历史数据来预测未来的股票的价格，判断股票是涨还是跌，帮助人做决策。
+Supervised learning (such as LSTM) can predict the price of future stocks based on various historical data, determine whether the stock is rising or falling, and help people make decisions.
 
 <img src="img/2020-03-25-18-55-13.png" alt="drawing" width="50%"/>
 
-而强化学习是机器学习的另一个分支，在决策的时候采取合适的行动 (Action) 使最后的奖励最大化。与监督学习预测未来的数值不同，强化学习根据输入的状态（如当日开盘价、收盘价等），输出系列动作（例如：买进、持有、卖出），使得最后的收益最大化，实现自动交易。
+Reinforcement learning is another branch of machine learning that takes appropriate actions (Action) to maximize the final reward when making decisions. Different from supervised learning to predict the future value, reinforcement learning outputs a series of actions (for example: buy, hold, sell) according to the state of the input (such as the opening price and closing price of the day), so as to maximize the final profit and realize Automatic trading.
 
 <img src="img/2020-03-25-18-19-03.png" alt="drawing" width="50%"/>
 
-## 🤖 OpenAI Gym 股票交易环境
+## 🤖 OpenAI Gym stock trading environment
 
-### 观测 Observation
+### Observation
 
-策略网络观测的就是一只股票的各项参数，比如开盘价、收盘价、成交数量等。部分数值会是一个很大的数值，比如成交金额或者成交量，有可能百万、千万乃至更大，为了训练时网络收敛，观测的状态数据输入时，必须要进行归一化，变换到 `[-1, 1]` 的区间内。
+The strategy network observes various parameters of a stock, such as opening price, closing price, and transaction volume. Part of the value will be a very large value, such as transaction amount or transaction volume, which may be millions, tens of millions or even larger. In order to converge the network during training, the observed state data must be normalized and transformed to `[-1, 1]` Within the interval.
 
-|参数名称|参数描述|说明|
+|parameter name|Parameter|Description	Description|
 |---|---|---|
-|date|交易所行情日期|格式：YYYY-MM-DD|
-|code|证券代码|格式：sh.600000。sh：上海，sz：深圳|
-|open|今开盘价格|精度：小数点后4位；单位：人民币元|
-|high|最高价|精度：小数点后4位；单位：人民币元|
-|low|最低价|精度：小数点后4位；单位：人民币元|
-|close|今收盘价|精度：小数点后4位；单位：人民币元|
-|preclose|昨日收盘价|精度：小数点后4位；单位：人民币元|
-|volume|成交数量|单位：股|
-|amount|成交金额|精度：小数点后4位；单位：人民币元|
-|adjustflag|复权状态|不复权、前复权、后复权|
-|turn|换手率|精度：小数点后6位；单位：%|
-|tradestatus|交易状态|1：正常交易 0：停牌|
-|pctChg|涨跌幅（百分比）|精度：小数点后6位|
-|peTTM|滚动市盈率|精度：小数点后6位|
-|psTTM|滚动市销率|精度：小数点后6位|
-|pcfNcfTTM|滚动市现率|精度：小数点后6位|
-|pbMRQ|市净率|精度：小数点后6位|
+|date|Exchange market date|Format：YYYY-MM-DD|
+|code|Securities code|Format：sh.600000。sh：Shanghai，sz：Shenzhen|
+|open|Opening price today|Precision: 4 digits after the decimal point; Unit: RMB|
+|high|Highest price	|Precision: 4 digits after the decimal point; Unit: RMB|
+|low|Lowest price	|Precision: 4 digits after the decimal point; Unit: RMB|
+|close|Closing price today|Precision: 4 digits after the decimal point; Unit: RMB|
+|preclose|Yesterday's closing price	|Precision: 4 digits after the decimal point; Unit: RMB|
+|volume|The number of transactions	|Unit: share|
+|amount|Turnover|Precision: 4 digits after the decimal point; Unit: RMB|
+|adjustflag|Restoration status|Non-restoration, pre-restoration, post-restoration|
+|turn|Turnover rate|Precision: 6 digits after the decimal point; unit:%|
+|tradestatus|trading status|1: Normal trading 0: Trading suspension|
+|pctChg|Change (%)|Precision: 6 digits after the decimal point|
+|peTTM|Rolling price-earnings ratio|Precision: 6 digits after the decimal point|
+|psTTM|Rolling market sales ratio|Precision: 6 digits after the decimal point|
+|pcfNcfTTM|Rolling price to cash rate|Precision: 6 digits after the decimal point|
+|pbMRQ|P/B ratio|Precision: 6 digits after the decimal point|
 
-### 动作 Action
+### Action
 
-假设交易共有**买入**、**卖出**和**保持** 3 种操作，定义动作(`action`)为长度为 2 的数组
+Assuming that the transaction has three operations: buy , sell and hold , the action ( `action` ) is defined as an array of length 2
 
-- `action[0]` 为操作类型；
-- `action[1]` 表示买入或卖出百分比；
+- `action[0]` Is the operation type;
+- `action[1]` Indicates the percentage of buying or selling;
 
-| 动作类型 `action[0]` | 说明 |
+| Action type `action[0]` | Description |
 |---|---|
-| 1 | 买入 `action[1]`|
-| 2 | 卖出 `action[1]`|
-| 3 | 保持 |
+| 1 | Buy in  `action[1]`|
+| 2 | Sell  `action[1]`|
+| 3 | maintain |
 
-注意，当动作类型 `action[0] = 3` 时，表示不买也不抛售股票，此时 `action[1]` 的值无实际意义，网络在训练过程中，Agent 会慢慢学习到这一信息。
+Note that when the type of action  `action[0] = 3`it means do not buy nor sell stocks, then  `action[1]` the value of no practical significance, the network in the training process, Agent will slowly learn this information.
 
-### 奖励 Reward
+### Reward
 
-奖励函数的设计，对强化学习的目标至关重要。在股票交易的环境下，最应该关心的就是当前的盈利情况，故用当前的利润作为奖励函数。即`当前本金 + 股票价值 - 初始本金 = 利润`。
+The design of the reward function is crucial to the goal of reinforcement learning. In the context of stock trading, the most important thing to care about is the current profit, so the current profit is used as the reward function. That is `Current principal + stock value-initial principal = profit` 
 
 ```python
 # profits
@@ -75,75 +76,74 @@ reward = self.net_worth - INITIAL_ACCOUNT_BALANCE
 reward = 1 if reward > 0 else reward = -100
 ```
 
-为了使网络更快学习到盈利的策略，当利润为负值时，给予网络一个较大的惩罚 (`-100`)。
+In order to make the network learn the profit strategy faster, when the profit is negative, give the network a larger penalty (`-100`)。
 
-### 策略梯度
+### Strategy gradient
 
-因为动作输出的数值是连续，因此使用基于策略梯度的优化算法，其中比较知名的是 [PPO 算法](https://arxiv.org/abs/1707.06347)，OpenAI 和许多文献已把 PPO 作为强化学习研究中首选的算法。PPO 优化算法 Python 实现参考 [stable-baselines](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)。
+Because the value of the action output is continuous, an optimization algorithm based on policy gradients is used. Among them, the [PPO](https://arxiv.org/abs/1707.06347) algorithm is more well-known . OpenAI and many documents have regarded PPO as the preferred algorithm in reinforcement learning research. PPO optimization algorithm Python implementation refers to [stable-baselines](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) .
 
-## 🕵️‍♀️ 模拟实验
+## 🕵️‍ Simulation experiment
 
-### 环境安装
+### Environmental installation
 
 ```sh
-# 虚拟环境
+# Virtual environment
 virtualenv -p python3.6 venv
 source ./venv/bin/activate
-# 安装库依赖
+# install the library dependencies 
 pip install -r requirements.txt
 ```
 
-### 股票数据获取
+### Stock data acquisition
 
-股票证券数据集来自于 [baostock](http://baostock.com/baostock/index.php/%E9%A6%96%E9%A1%B5)，一个免费、开源的证券数据平台，提供 Python API。
+The stock securities data set comes from [baostock](http://baostock.com/baostock/index.php/%E9%A6%96%E9%A1%B5) , a free and open source securities data platform that provides Python APIs.
 
 ```bash
 >> pip install baostock -i https://pypi.tuna.tsinghua.edu.cn/simple/ --trusted-host pypi.tuna.tsinghua.edu.cn
 ```
 
-数据获取代码参考 [get_stock_data.py](https://github.com/wangshub/RL-Stock/blob/master/get_data.py)
+Data acquisition code refer to  [get_stock_data.py](https://github.com/wangshub/RL-Stock/blob/master/get_data.py)
 
 ```python
 >> python get_stock_data.py
 ```
 
-将过去 20 多年的股票数据划分为训练集，和末尾 1 个月数据作为测试集，来验证强化学习策略的有效性。划分如下
+The stock data of the past 20 years is divided into a training set, and the last month's data is used as a test set to verify the effectiveness of the reinforcement learning strategy. Divided as follows
 
 | `1990-01-01` ~ `2019-11-29` | `2019-12-01` ~ `2019-12-31` |
 |---|---|
-| 训练集 | 测试集 |
+| Training set | Test set |
 
-### 验证结果
+### Validation results
 
-**单只股票**
+**Single stock**
 
-- 初始本金 `10000`
-- 股票代码：`sh.600036`(招商银行)
-- 训练集： `stockdata/train/sh.600036.招商银行.csv`
-- 测试集： `stockdata/test/sh.600036.招商银行.csv`
-- 模拟操作 `20` 天，最终盈利约 `400`
+- Initial principal `10000`
+- Stock code: `sh.600036`(China Merchants Bank - 招商银行)
+- Training set: `stockdata/train/sh.600036.招商银行.csv`
+- Test set:  `stockdata/test/sh.600036.招商银行.csv`
+- Simulation operation `20` day, a final profit of about `400`
 
 <img src="img/sh.600036.png" alt="drawing" width="70%"/>
 
-**多只股票**
+**Multiple stocks**
 
-选取 `1002` 只股票，进行训练，共计
+Select `1002` stocks, training, total
 
-- 盈利： `44.5%`
-- 不亏不赚： `46.5%`
-- 亏损：`9.0%`
+- Profit： `44.5%`
+- No loss or no profit:  `46.5%`
+- Loss：`9.0%`
 
 <img src="img/pie.png" alt="drawing" width="50%"/>
 
 <img src="img/hist.png" alt="drawing" width="50%"/>
 
-## 👻 最后
+## 👻 At Last
 
-- 股票 Gym 环境主要参考 [Stock-Trading-Environment](https://github.com/notadamking/Stock-Trading-Environment)，对观测状态、奖励函数和训练集做了修改。
-- 俺完全是股票没入门的新手，难免存在错误，欢迎指正！
-- 数据和方法皆来源于网络，无法保证有效性，**Just For Fun**！
+- The stock Gym environment mainly refers to [Stock-Trading-Environment](https://github.com/notadamking/Stock-Trading-Environment) , and the observation state, reward function and training set are modified.
 
-## 📚 参考资料
+
+## 📚 References
 
 - Y. Deng, F. Bao, Y. Kong, Z. Ren and Q. Dai, "Deep Direct Reinforcement Learning for Financial Signal Representation and Trading," in IEEE Transactions on Neural Networks and Learning Systems, vol. 28, no. 3, pp. 653-664, March 2017.
 - [Yuqin Dai, Chris Wang, Iris Wang, Yilun Xu, "Reinforcement Learning for FX trading"](http://stanford.edu/class/msande448/2019/Final_reports/gr2.pdf)
